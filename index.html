@@ -6,6 +6,8 @@
     <style>
         body {
             font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: white;
         }
         table {
             border-collapse: collapse;
@@ -15,6 +17,14 @@
             border: 1px solid #dddddd;
             text-align: center;
             padding: 8px;
+        }
+        input {
+            color: white;
+            background-color: black;
+        }
+        textarea {
+            color: white;
+            background-color: black;
         }
     </style>
     <style id="dynamic-style">
@@ -82,18 +92,18 @@
             if (startValueFx > 0) {
                 document.getElementById("dynamic-style").innerHTML = `
                 .startColumn {
-                    background-color: #AFFFBD;
+                    background-color: #153521;
                 }
                 .endColumn {
-                    background-color: #FFAFAF;
+                    background-color: #470F13;
                 }`;
             } else {
                 document.getElementById("dynamic-style").innerHTML = `
                 .startColumn {
-                    background-color: #FFAFAF;
+                    background-color: #470F13;
                 }
                 .endColumn {
-                    background-color: #AFFFBD;
+                    background-color: #153521;
                 }`;
             }
             let mid = (rangeStart + rangeEnd) / 2;
@@ -144,9 +154,9 @@
             mathTable.innerHTML = table;
             [...document.getElementsByClassName('fmid')].forEach((el) => {
                 if (+el.textContent > 0) {
-                    el.style.backgroundColor = '#AFFFBD';
+                    el.style.backgroundColor = '#153521';
                 } else {
-                    el.style.backgroundColor = '#FFAFAF';
+                    el.style.backgroundColor = '#470F13';
                 }
             });
         });
