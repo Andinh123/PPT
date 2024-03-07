@@ -7,6 +7,23 @@
         body {
             font-family: Arial, sans-serif;
         }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: center;
+            padding: 8px;
+        }
+    </style>
+    <style id="dynamic-style">
+        .startColumn {
+            background-color: white;
+        }
+        .endColumn {
+            background-color: white;
+        }
     </style>
 </head>
 <body>
@@ -25,28 +42,113 @@
         </select>
     </div>
     <label for="mainFunction">f(x) = </label>
-    <input type="text" id="mainFunction" name="mainFunction">
-    Interval from: <input type="number" id="rangeStart" name="rangeStart"> to <input type="number" id="rangeEnd" name="rangeEnd">
-    Loop for: <input type="number" id="loopFor" name="loopFor">
+    <textarea id="mainFunction">x+5</textarea>
+    Interval from: <input id="rangeStart" name="rangeStart"> to <input id="rangeEnd" name="rangeEnd">
+    Loop for: <input id="loopFor" name="loopFor">
     <button id="submitButton">Submit</button>
-    <div id="previewEquationSvg"></div>
+    <div id="rendering" style="display: none; visibility: hidden;">
+        `x+5`
+    </div>
+    <div id="mathTable"></div>
+    <script src="https://unpkg.com/mathjs@12.4.0/lib/browser/math.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/latest.js?config=AM_CHTML-full"></script>
     <script>
+		window.MathJax = {
+            "fast-preview": {
+                    disabled: true
+            },
+            AuthorInit: function() {
+                MathJax.Hub.Register.StartupHook('End', function() {
+                    MathJax.Hub.processSectionDelay = 0
+                    var mainFunction = document.getElementById('mainFunction')
+                    var thismath = MathJax.Hub.getAllJax('rendering')[0]
+                    mainFunction.addEventListener('input', function() {
+                        console.log(mainFunction.value)
+                        MathJax.Hub.Queue(['Text', thismath, math.simplify(mainFunction.value)])
+                    })
+                })
+            }
+		}
         const userInput = document.getElementById('mainFunction');
         const submitButton = document.getElementById('submitButton');
+        const mathTable = document.getElementById('mathTable');
         submitButton.addEventListener('click', function() {
             let input = userInput.value;
-            console.log(input);
-            fetch(`https://www.wiris.net/demo/editor/render?format=svg&latex=${input}`).then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
+            input = math.simplify(input).toString();
+            let rangeStart = +document.getElementById('rangeStart').value;
+            let rangeEnd = +document.getElementById('rangeEnd').value;
+            const loopFor = +document.getElementById('loopFor').value;
+            let startValueFx = math.evaluate(input, {x: rangeStart});
+            if (startValueFx > 0) {
+                document.getElementById("dynamic-style").innerHTML = `
+                .startColumn {
+                    background-color: #AFFFBD;
                 }
-                return response.text();
-            }).then(
-                data => {
-                    console.log(data);
-                    document.getElementById('previewEquationSvg').innerHTML = data;
+                .endColumn {
+                    background-color: #FFAFAF;
+                }`;
+            } else {
+                document.getElementById("dynamic-style").innerHTML = `
+                .startColumn {
+                    background-color: #FFAFAF;
                 }
-            ) 
+                .endColumn {
+                    background-color: #AFFFBD;
+                }`;
+            }
+            let mid = (rangeStart + rangeEnd) / 2;
+            let fmid = math.evaluate(input, {x: mid});
+            let simplifyView = document.getElementById('rendering').innerHTML;
+            let table = `<table><tbody>
+                <tr>
+                    <th>Index</th>
+                    <th>Range Start</th>
+                    <th>Range End</th>
+                    <th>X</th>
+                    <th>f(x)= ${simplifyView}</th>
+                </tr>
+                <tr>
+                    <td>0</td>
+                    <td class="startColumn">${rangeStart}</td>
+                    <td class="endColumn">${rangeEnd}</td>
+                    <td>${mid}</td>
+                    <td class="fmid">${fmid}</td>
+                </tr>
+                `;
+            for (let i = 0; i < loopFor; i++) {
+                mid = (rangeStart + rangeEnd) / 2;
+                fmid = math.evaluate(input, {x: mid});
+                if (fmid === 0) {
+                    console.log(mid);
+                    break;
+                }
+                if (fmid * math.evaluate(input, {x: rangeStart}) < 0) {
+                    rangeEnd = mid;
+                } else {
+                    rangeStart = mid;
+                }
+                mid = (rangeStart + rangeEnd) / 2;
+                fmid = math.evaluate(input, {x: mid});
+                console.log(fmid);
+                table += `
+                <tr>
+                    <td>${i+1}</td>
+                    <td class="startColumn">${rangeStart}</td>
+                    <td class="endColumn">${rangeEnd}</td>
+                    <td>${mid}</td>
+                    <td class="fmid">${fmid}</td>
+                </tr>`;
+            }
+            table += '</tbody></table>';
+            console.log(table);
+            mathTable.innerHTML = table;
+            [...document.getElementsByClassName('fmid')].forEach((el) => {
+                if (+el.textContent > 0) {
+                    el.style.backgroundColor = '#AFFFBD';
+                } else {
+                    el.style.backgroundColor = '#FFAFAF';
+                }
+            });
         });
     </script>
 </body>
