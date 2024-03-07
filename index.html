@@ -24,5 +24,30 @@
             <option value="newton">Newton Method</option>
         </select>
     </div>
+    <label for="mainFunction">f(x) = </label>
+    <input type="text" id="mainFunction" name="mainFunction">
+    Interval from: <input type="number" id="rangeStart" name="rangeStart"> to <input type="number" id="rangeEnd" name="rangeEnd">
+    Loop for: <input type="number" id="loopFor" name="loopFor">
+    <button id="submitButton">Submit</button>
+    <div id="previewEquationSvg"></div>
+    <script>
+        const userInput = document.getElementById('mainFunction');
+        const submitButton = document.getElementById('submitButton');
+        submitButton.addEventListener('click', function() {
+            let input = userInput.value;
+            console.log(input);
+            fetch(`https://www.wiris.net/demo/editor/render?format=svg&latex=${input}`).then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.text();
+            }).then(
+                data => {
+                    console.log(data);
+                    document.getElementById('previewEquationSvg').innerHTML = data;
+                }
+            ) 
+        });
+    </script>
 </body>
 </html>
