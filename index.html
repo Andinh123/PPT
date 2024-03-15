@@ -5,9 +5,11 @@
     <title>Numerical Method Project</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #1a1a1a;
+            font-family: Cambria, Georgia, serif;
+            background-color: #242424;
             color: white;
+            padding: 50px;
+            font-size: 1.9vw;
         }
         table {
             border-collapse: collapse;
@@ -26,6 +28,47 @@
             color: white;
             background-color: black;
         }
+        select {
+            border-radius: 5px;
+            z-index: 97;
+            width: 15vw;
+            height: 7.5vh;
+            font-size: 2vw;
+            background-color: #393939;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.25s;
+        }
+        h4 {
+            margin-right: 20px;
+        }
+        textarea {
+            font-size: 1.5vw;
+        }
+        input {
+            border: none;
+            height: 5vh;
+            margin: 0 20px;
+            font-size: 1.25vw;
+        }
+        button {
+            background-color: #747474;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1.75vw;
+            cursor: pointer;
+            transition: 0.25s;
+        }
+        button:hover {
+            background-color: #c8c8c8;
+        }
+        button:active {
+            background-color: #ffffff;
+        }
     </style>
     <style id="dynamic-style">
         .startColumn {
@@ -43,26 +86,51 @@
         Please use Chrome (latest version) to view this website. Also make sure to enable JavaScript.
     </p>
     <h4>This web and it's code is copyrighted please contact me for permission</h4>
-    <div class="optionSlot">
+    <div style="display: flex; flex-direction: row; align-items: baseline; padding: 20px;">
         <h4>Method:</h4>
-        <select id="uiselect">
+        <select id="typeSelect">
             <option value="bisection">Bi-section</option>
             <option value="fixpoint">Fixed Point</option>
             <option value="newton">Newton Method</option>
         </select>
     </div>
-    <label for="mainFunction">f(x) = </label>
-    <textarea id="mainFunction">x+5</textarea>
-    Interval from: <input id="rangeStart" name="rangeStart"> to <input id="rangeEnd" name="rangeEnd">
-    Loop for: <input id="loopFor" name="loopFor">
-    <button id="submitButton">Submit</button>
-    <div id="rendering" style="display: none; visibility: hidden;">
-        `x+5`
+    <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 60px;">
+        <div style="display: flex; flex-direction: row; align-items: center; justify-content: center;">
+            <label for="mainFunction" id="mainFunctionLabel">f(x) = </label>
+            <textarea id="mainFunction">x+5</textarea>
+        </div>
+        <div id="inputFieldType" style="display: flex; flex-direction: row;">
+            Interval from: <input id="rangeStart" name="rangeStart" value="-6"> to <input id="rangeEnd" name="rangeEnd" value="0">
+        </div>
+        <div style="display: flex; flex-direction: row;">
+            Loop for: <input id="loopFor" name="loopFor" value="5">
+            <div style="display: flex; align-content: center; justify-content: center; margin-bottom: 5vh;">
+                <button id="submitButton">Submit</button>
+                <div id="rendering" style="display: none; visibility: hidden;">
+                    `x+5`
+                </div>
+            </div>
+        </div>
     </div>
+    <div id="extraCalc"></div>
+    <br><br>
     <div id="mathTable"></div>
     <script src="https://unpkg.com/mathjs@12.4.0/lib/browser/math.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/latest.js?config=AM_CHTML-full"></script>
     <script>
+        let typeInputFieldDiffer = [
+            `  
+            Interval from: <input id="rangeStart" name="rangeStart"> to <input id="rangeEnd" name="rangeEnd">
+            `,
+            `
+            Interval from: <input id="rangeStart" name="rangeStart"> to <input id="rangeEnd" name="rangeEnd">
+            Initial X value: <input id="initialX" name="initialX">
+            `,
+            `
+            Interval from: <input id="rangeStart" name="rangeStart"> to <input id="rangeEnd" name="rangeEnd">
+            Initial X value (Leave Empty for Fourier condition): <input id="initialXFourier" name="initialXFourier">
+            `
+        ]
 		window.MathJax = {
             "fast-preview": {
                     disabled: true
@@ -79,86 +147,167 @@
                 })
             }
 		}
+        document.getElementById('typeSelect').addEventListener('click', event => {
+            const type = event.target.value;
+            let input = document.getElementById('mainFunction').value;
+            let inputFieldType = document.getElementById('inputFieldType');
+            if (type === 'bisection') {
+                console.log('bisection');
+                inputFieldType.innerHTML = typeInputFieldDiffer[0];
+            } else if (type === 'fixpoint') {
+                document.getElementById('mainFunctionLabel').textContent = "x ="
+                console.log('fixpoint');
+                inputFieldType.innerHTML = typeInputFieldDiffer[1];
+            } else if (type === 'newton') {
+                console.log('newton');
+                inputFieldType.innerHTML = typeInputFieldDiffer[2];
+            }
+        });
         const userInput = document.getElementById('mainFunction');
         const submitButton = document.getElementById('submitButton');
         const mathTable = document.getElementById('mathTable');
         submitButton.addEventListener('click', function() {
+            mathTable.innerHTML = "";
             let input = userInput.value;
-            input = math.simplify(input).toString();
             let rangeStart = +document.getElementById('rangeStart').value;
             let rangeEnd = +document.getElementById('rangeEnd').value;
             const loopFor = +document.getElementById('loopFor').value;
-            let startValueFx = math.evaluate(input, {x: rangeStart});
-            if (startValueFx > 0) {
-                document.getElementById("dynamic-style").innerHTML = `
-                .startColumn {
-                    background-color: #153521;
-                }
-                .endColumn {
-                    background-color: #470F13;
-                }`;
-            } else {
-                document.getElementById("dynamic-style").innerHTML = `
-                .startColumn {
-                    background-color: #470F13;
-                }
-                .endColumn {
-                    background-color: #153521;
-                }`;
-            }
-            let mid = (rangeStart + rangeEnd) / 2;
-            let fmid = math.evaluate(input, {x: mid});
+            input = math.simplify(input).toString();
+            let extraCalc = document.getElementById('extraCalc');
             let simplifyView = document.getElementById('rendering').innerHTML;
-            let table = `<table><tbody>
-                <tr>
-                    <th>Index</th>
-                    <th>Range Start</th>
-                    <th>Range End</th>
-                    <th>X</th>
-                    <th>f(x)= ${simplifyView}</th>
-                </tr>
-                <tr>
-                    <td>0</td>
-                    <td class="startColumn">${rangeStart}</td>
-                    <td class="endColumn">${rangeEnd}</td>
-                    <td>${mid}</td>
-                    <td class="fmid">${fmid}</td>
-                </tr>
-                `;
-            for (let i = 0; i < loopFor; i++) {
-                mid = (rangeStart + rangeEnd) / 2;
-                fmid = math.evaluate(input, {x: mid});
-                if (fmid === 0) {
-                    console.log(mid);
-                    break;
-                }
-                if (fmid * math.evaluate(input, {x: rangeStart}) < 0) {
-                    rangeEnd = mid;
-                } else {
-                    rangeStart = mid;
-                }
-                mid = (rangeStart + rangeEnd) / 2;
-                fmid = math.evaluate(input, {x: mid});
-                console.log(fmid);
-                table += `
-                <tr>
-                    <td>${i+1}</td>
-                    <td class="startColumn">${rangeStart}</td>
-                    <td class="endColumn">${rangeEnd}</td>
-                    <td>${mid}</td>
-                    <td class="fmid">${fmid}</td>
-                </tr>`;
+            switch (document.getElementById('typeSelect').value) {
+                case "bisection": 
+                    let startValueFx = math.evaluate(input, {x: rangeStart});
+                    if (startValueFx > 0) {
+                        document.getElementById("dynamic-style").innerHTML = `
+                        .startColumn {
+                            background-color: #153521;
+                        }
+                        .endColumn {
+                            background-color: #470F13;
+                        }`;
+                    } else {
+                        document.getElementById("dynamic-style").innerHTML = `
+                        .startColumn {
+                            background-color: #470F13;
+                        }
+                        .endColumn {
+                            background-color: #153521;
+                        }`;
+                    }
+                    let mid = (rangeStart + rangeEnd) / 2;
+                    let fmid = math.evaluate(input, {x: mid});
+                    let table = `<table><tbody>
+                        <tr>
+                            <th>Index</th>
+                            <th>Range Start</th>
+                            <th>Range End</th>
+                            <th>X</th>
+                            <th>f(x)= ${simplifyView}</th>
+                        </tr>
+                        <tr>
+                            <td>0</td>
+                            <td class="startColumn">${rangeStart}</td>
+                            <td class="endColumn">${rangeEnd}</td>
+                            <td>${mid}</td>
+                            <td class="fmid">${fmid}</td>
+                        </tr>
+                        `;
+                    for (let i = 0; i < loopFor; i++) {
+                        mid = (rangeStart + rangeEnd) / 2;
+                        fmid = math.evaluate(input, {x: mid});
+                        if (fmid === 0) {
+                            console.log(mid);
+                            break;
+                        }
+                        if (fmid * math.evaluate(input, {x: rangeStart}) < 0) {
+                            rangeEnd = mid;
+                        } else {
+                            rangeStart = mid;
+                        }
+                        mid = (rangeStart + rangeEnd) / 2;
+                        fmid = math.evaluate(input, {x: mid});
+                        console.log(fmid);
+                        table += `
+                        <tr>
+                            <td>${i+1}</td>
+                            <td class="startColumn">${rangeStart}</td>
+                            <td class="endColumn">${rangeEnd}</td>
+                            <td>${mid}</td>
+                            <td class="fmid">${fmid}</td>
+                        </tr>`;
+                    }
+                    table += '</tbody></table>';
+                    mathTable.innerHTML = table;
+                    [...document.getElementsByClassName('fmid')].forEach((el) => {
+                        if (+el.textContent > 0) {
+                            el.style.backgroundColor = '#153521';
+                        } else {
+                            el.style.backgroundColor = '#470F13';
+                        }
+                    });
+                break;
+                case "fixpoint":
+                    let initialX = document.getElementById('initialX').value;
+                    const derivativeExpr = math.derivative(input, 'x').compile();
+                    let aEnd = math.derivative(input, 'x').evaluate({x: rangeStart}).toFixed(3);
+                    let bEnd = math.derivative(input, 'x').evaluate({x: rangeEnd}).toFixed(3);
+                    let maxEnd = Math.max(aEnd, bEnd);
+                    extraCalc.innerHTML = `q = Max(${aEnd}, ${bEnd}) = ${maxEnd}`;
+                    if (maxEnd >= 1) {
+                        extraCalc.innerHTML += `<p>q ≥ 1, the function will not converge</p>`;
+                        return;
+                    } else {
+                        extraCalc.innerHTML += `<p>q < 1, the function will converge</p>`;
+                    }
+                    let fixPointTable = `<table><tbody>
+                        <tr>
+                            <th>Index</th>
+                            <th>x = ${simplifyView}</th>
+                        </tr>
+                        `;
+                    for (let i = 0; i <= loopFor; i++) {
+                        fixPointTable += `
+                        <tr>
+                            <td>${i}</td>
+                            <td>${initialX}</td>
+                        </tr>`;
+                        initialX = math.evaluate(input, {x: initialX})
+                    }
+                    fixPointTable += '</tbody></table>';
+                    mathTable.innerHTML = fixPointTable;
+                break;
+                case "newton":
+                    let initialXFourier = document.getElementById('initialXFourier').value;
+                    if (initialXFourier === "") {
+                        let fMultiplyFdouble = math.derivative(input, 'x').evaluate({x: rangeStart}) * math.derivative(math.derivative(input, 'x'), 'x').evaluate({x: rangeStart}).toFixed(3);
+                        if ( fMultiplyFdouble> 0) {
+                            initialXFourier = rangeEnd;
+                            extraCalc.innerHTML = `Initial X value is not given, using Fourier condition: f'(x) * f''(x) = ${fMultiplyFdouble} > 0 => Initial x = ${rangeEnd}`;
+                        } else {
+                            initialXFourier = rangeStart;
+                            extraCalc.innerHTML = `Initial X value is not given, using Fourier condition: f'(x) * f''(x) = ${fMultiplyFdouble} < 0 => Initial x = ${rangeStart}`;
+                        }
+                    }
+                    let newtonTable = `<table><tbody>
+                        <tr>
+                            <th>Index</th>
+                            <th>x = ${simplifyView}</th>
+                        </tr>
+                        `;
+                    for (let i = 0; i <= loopFor; i++) {
+                        newtonTable += `
+                        <tr>
+                            <td>${i}</td>
+                            <td>${initialXFourier}</td>
+                        </tr>`;
+                        initialXFourier = initialXFourier - math.evaluate(input, {x: initialXFourier})/math.derivative(input, 'x').evaluate({x: initialXFourier})
+                    }
+                    newtonTable += '</tbody></table>';
+                    mathTable.innerHTML = newtonTable;
+                break;
             }
-            table += '</tbody></table>';
-            console.log(table);
-            mathTable.innerHTML = table;
-            [...document.getElementsByClassName('fmid')].forEach((el) => {
-                if (+el.textContent > 0) {
-                    el.style.backgroundColor = '#153521';
-                } else {
-                    el.style.backgroundColor = '#470F13';
-                }
-            });
+            
         });
     </script>
 </body>
