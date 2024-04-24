@@ -19,6 +19,7 @@
             border: 1px solid #dddddd;
             text-align: center;
             padding: 8px;
+            min-width: 7.5vw;
         }
         input {
             color: white;
@@ -69,6 +70,13 @@
         button:active {
             background-color: #ffffff;
         }
+        .boundary {
+            width: 40px;
+        }
+        #finalResult{
+            font-size: 2vw;
+            font-weight: bold;
+        }
     </style>
     <style id="dynamic-style">
         .startColumn {
@@ -81,10 +89,105 @@
 </head>
 <body>
     <h1>Numerical Method Project</h1>
-    <h4>WARNING</h4>
-    <p>
-        Please use Chrome (latest version) to view this website. Also make sure to enable JavaScript.
-    </p>
+    <h3>Topic 5: Intergration and calculate double intergral</h3>
+    <div style="display: flex; flex-direction: row; align-items: baseline; padding: 20px;">
+        <h4>Method:</h4>
+        <select id="typeSelectIntergral">
+            <option value="trapezoidal">Trapezoidal</option>
+            <option value="simpson">Simpson's Rule</option>
+        </select>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 60px;">
+        <div>
+            <input id="upperBound" value="5" class="boundary">
+            <div style="display: flex; flex-direction: row; align-items: center; justify-content: center;">
+                ‎ ‎ ‎ ‎ <label style="font-size: 5vw;">∫</label>
+                <textarea id="mainFunctionIntergral">x^2+1</textarea>
+                <label>dx</label>
+            </div>
+            <input id="lowerBound" value="0" class="boundary">
+        </div>
+        <div style="display: flex; flex-direction: row;">
+            Step (n): <input id="step" value="10">
+            <div style="display: flex; align-content: center; justify-content: center; margin-bottom: 5vh;">
+                <button id="submitButtonIntergral">Submit</button>
+                <div id="renderingIntergral" style="display: none; visibility: hidden;">
+                    `x^2+1`
+                </div>
+            </div>
+        </div>
+        <div id="mathTableIntergral"></div>
+        <br>
+    </div>
+    <script>
+        const submitButtonIntergral = document.getElementById('submitButtonIntergral');
+        const intergralTable = document.getElementById('mathTableIntergral');
+        submitButtonIntergral.addEventListener('click', function() {
+            let inputIntergral = mainFunctionIntergral.value;
+            inputIntergral = math.simplify(inputIntergral).toString();
+            let upperBound = +document.getElementById('upperBound').value;
+            let lowerBound = +document.getElementById('lowerBound').value;
+            let step = +document.getElementById('step').value;
+            let deltaX = Math.round(((upperBound - lowerBound) / step) * 10000) / 10000;
+            let simplifyViewIntergral = document.getElementById('renderingIntergral').innerHTML;
+            console.log(upperBound, lowerBound, step, deltaX);
+            let intergralTableDiv = `<table><tbody><tr><td>Index</td><td>x</td><td>f(x)</td><td>coeffecient</td><td>coeffecient*f(x)</td></tr>`;
+            switch (document.getElementById('typeSelectIntergral').value) {
+                case "trapezoidal":
+                    let finalResultTrap = 0;
+                    for (let i = 0; i <= step; i++) {
+                        let coeffecient;
+                        if (i === 0 || i === step) {
+                            coeffecient = 1;
+                        } else {
+                            coeffecient = 2;
+                        }
+                        finalResultTrap += +coeffecient * +math.evaluate(inputIntergral, {x: i*deltaX});
+                        intergralTableDiv += `
+                        <tr>
+                            <td>${i}</td>
+                            <td>${i*deltaX}</td>
+                            <td>${math.evaluate(inputIntergral, {x: i*deltaX})}</td>
+                            <td>${coeffecient}</td>
+                            <td>${coeffecient * math.evaluate(inputIntergral, {x: i*deltaX})}</td>
+                        </tr>
+                        `;
+                    };
+                    intergralTableDiv += `<div id="finalResult">FINAL RESULT: ${finalResultTrap*0.5*deltaX}</div><br>`
+                break;
+                case "simpson":
+                    let finalResultSimpson = 0;
+                    for (let i = 0; i <= step; i++) {
+                        let coeffecient;
+                        if (i === 0 || i === step) {
+                            coeffecient = 1;
+                        } else if (i % 2 === 0) {
+                            coeffecient = 2;
+                        } else {
+                            coeffecient = 4;
+                        }
+                        finalResultSimpson += +coeffecient * +math.evaluate(inputIntergral, {x: i*deltaX});
+                        intergralTableDiv += `
+                        <tr>
+                            <td>${i}</td>
+                            <td>${i*deltaX}</td>
+                            <td>${math.evaluate(inputIntergral, {x: i*deltaX})}</td>
+                            <td>${coeffecient}</td>
+                            <td>${coeffecient * math.evaluate(inputIntergral, {x: i*deltaX})}</td>
+                        </tr>
+                        `;
+                    };
+                    intergralTableDiv += `<div id="finalResult">FINAL RESULT: ${finalResultSimpson*deltaX/3}</div><br>`
+                break;
+                case "double":
+                break;
+            }
+            intergralTableDiv += '</tbody></table>';
+            mathTableIntergral.innerHTML = intergralTableDiv;
+        })
+    </script>
+    <div>=====================================================================================</div>
+    <h3>Topic 6: Use bi-section, fixed point, and Newton Method to solve one variable function</h3>
     <div style="display: flex; flex-direction: row; align-items: baseline; padding: 20px;">
         <h4>Method:</h4>
         <select id="typeSelect">
@@ -140,8 +243,15 @@
                     var mainFunction = document.getElementById('mainFunction')
                     var thismath = MathJax.Hub.getAllJax('rendering')[0]
                     mainFunction.addEventListener('input', function() {
-                        console.log(mainFunction.value)
                         MathJax.Hub.Queue(['Text', thismath, math.simplify(mainFunction.value)])
+                    })
+                }),
+                MathJax.Hub.Register.StartupHook('End', function() {
+                    MathJax.Hub.processSectionDelay = 0
+                    var mainFunctionIntergral = document.getElementById('mainFunctionIntergral')
+                    var thismathIntergral = MathJax.Hub.getAllJax('renderingIntergral')[0]
+                    mainFunctionIntergral.addEventListener('input', function() {
+                        MathJax.Hub.Queue(['Text', thismathIntergral, math.simplify(mainFunctionIntergral.value)])
                     })
                 })
             }
@@ -166,6 +276,7 @@
         const submitButton = document.getElementById('submitButton');
         const mathTable = document.getElementById('mathTable');
         submitButton.addEventListener('click', function() {
+            console.log("clicked")
             mathTable.innerHTML = "";
             let input = userInput.value;
             let rangeStart = +document.getElementById('rangeStart').value;
